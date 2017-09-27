@@ -1,59 +1,56 @@
-Attribute VB_Name = "Module11"
+Attribute VB_Name = "Module1"
 Option Explicit
-
-'BMPƒtƒ@ƒCƒ‹‚Ìd—l
-'18-21byte‚É‰¡‚Ì‰æ‘f”
-'22-25byte‚Éc‚Ì‰æ‘f”
+ 
+'BMPãƒ•ã‚¡ã‚¤ãƒ«ã®ä»•æ§˜
+'18-21byteã«æ¨ªã®ç”»ç´ æ•°
+'22-25byteã«ç¸¦ã®ç”»ç´ æ•°
 Const WIDTH_POS As Long = 18
 Const HEIGHT_POS As Long = 22
-
+ 
 Sub Main()
-    Dim IMG_CNT As Long '‰æ‘œ–‡”
+    Dim IMG_CNT As Long 'ç”»åƒæšæ•°
     IMG_CNT = 1383
-    Dim IMG_H As Long '‰æ‘œ‚Ì‚‚³
+    Dim IMG_H As Long 'ç”»åƒã®é«˜ã•
     IMG_H = 180
-    
+     
     Dim myCnt As Long
     Dim next_row As Long
     next_row = 0
-    
+     
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual
-    
+     
     For myCnt = 0 To IMG_CNT
         Dim str As String
         str = CStr(myCnt)
-        'Application.ScreenUpdating = False
         Call ReadBMP(str, next_row)
         next_row = next_row + IMG_H
-        'If myCnt Mod 10 = 0 Then DoEvents
-        'Application.ScreenUpdating = True
         Application.StatusBar = "Processing " & myCnt & " row"
         If myCnt Mod 5 = 0 Then DoEvents
-        
+         
     Next myCnt
-    
+     
     Application.ScreenUpdating = True
     Application.Calculation = xlCalculationAutomatic
 End Sub
-
-
+ 
+ 
 Function ReadBMP(filenum As String, next_row As Long)
-    Dim openFileName As String      'ŠJ‚­ƒtƒ@ƒCƒ‹–¼
-    Dim a() As Byte                 'Byte—ñ“Ç‚İ‚İ
-    Dim File_Size As Long           '“Ç‚İ‚Şƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY
-    Dim Image_Width_Pixel As Long   '‰æ‘œ‚Ì‰¡‚ÌPixel”
-    Dim Image_Height_Pixel As Long  '‰æ‘œ‚Ìc‚ÌPixel”
-    Dim Line_Width_Size As Long     '‰¡ƒ‰ƒCƒ“‚ÌByte”
-    Dim Line_Last_Size As Long      '‰¡ƒ‰ƒCƒ“‚ÌÅŒã‚É‚Â‚¯‚ç‚ê‚½Byte”
-    Dim Image_Data_Pos As Long      'ƒCƒ[ƒWƒf[ƒ^‚ÌŠJnˆÊ’u
-    Dim image() As Byte             '‰æ‘œ‚Ì”z—ñ
-    
+    Dim openFileName As String      'é–‹ããƒ•ã‚¡ã‚¤ãƒ«å
+    Dim a() As Byte                 'Byteåˆ—èª­ã¿è¾¼ã¿
+    Dim File_Size As Long           'èª­ã¿è¾¼ã‚€ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚º
+    Dim Image_Width_Pixel As Long   'ç”»åƒã®æ¨ªã®Pixelæ•°
+    Dim Image_Height_Pixel As Long  'ç”»åƒã®ç¸¦ã®Pixelæ•°
+    Dim Line_Width_Size As Long     'æ¨ªãƒ©ã‚¤ãƒ³ã®Byteæ•°
+    Dim Line_Last_Size As Long      'æ¨ªãƒ©ã‚¤ãƒ³ã®æœ€å¾Œã«ã¤ã‘ã‚‰ã‚ŒãŸByteæ•°
+    Dim Image_Data_Pos As Long      'ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ‡ãƒ¼ã‚¿ã®é–‹å§‹ä½ç½®
+    Dim image() As Byte             'ç”»åƒã®é…åˆ—
+     
     Application.ErrorCheckingOptions.BackgroundChecking = False
     ChDir ThisWorkbook.Path & "\"
     openFileName = "D:\excel_anime\video\" + filenum + ".bmp"
     If openFileName = "False" Then
-        MsgBox "BMPƒtƒ@ƒCƒ‹‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢"
+        MsgBox "BMPãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠã—ã¦ãã ã•ã„"
         Exit Function
     End If
     Open openFileName For Binary As #1
@@ -61,51 +58,50 @@ Function ReadBMP(filenum As String, next_row As Long)
     ReDim a(File_Size)
     Get #1, , a()
     Close #1
-    
+     
     Image_Width_Pixel = myHex2Dec(a(), WIDTH_POS, WIDTH_POS + 3)
     Image_Height_Pixel = myHex2Dec(a(), HEIGHT_POS, HEIGHT_POS + 3)
     Line_Width_Size = myCalcLineSize(Image_Width_Pixel)
     Line_Last_Size = Line_Width_Size - Image_Width_Pixel * 3
     Image_Data_Pos = myHex2Dec(a(), 10, 13)
     ReDim image(Image_Width_Pixel - 1, Image_Height_Pixel - 1, 3 - 1)
-    
+     
     Call WriteImage2Array(image(), a(), File_Size)
-    
+     
     Call ChangeColumnWidth(image(), next_row)
     Call WriteArray2Cells(image(), next_row)
-    
-    'Call WriteImage2Jpeg(image())
+     
 End Function
-
-
-'16To10•ÏŠ· (Byte”z—ñ, Å‰‚ÌByteˆÊ’u, I‚í‚è‚ÌByteˆÊ’u)
-'   •¡”ƒoƒCƒg‚Ì16i”‚ğ10i”‚É•ÏŠ·‚·‚é
+ 
+ 
+'16To10å¤‰æ› (Byteé…åˆ—, æœ€åˆã®Byteä½ç½®, çµ‚ã‚ã‚Šã®Byteä½ç½®)
+'   è¤‡æ•°ãƒã‚¤ãƒˆã®16é€²æ•°ã‚’10é€²æ•°ã«å¤‰æ›ã™ã‚‹
 Function myHex2Dec(a() As Byte, First As Long, Last As Long) As Long
     Dim i As Long
     Dim str As String
     str = ""
-    
+     
     For i = Last To First Step -1
         str = str & Right("00" & Hex(a(i)), 2)
     Next
-    
+     
     myHex2Dec = CInt("&H" & str)
 End Function
-
-'BMP‰æ‘œ‚Ì1s•ª‚Ìbyte”‚ğŒvZ
-'BMP‰æ‘œ‚Í1s‚Ìbyte”‚ª4‚Ì”{”‚É‚È‚é‚æ‚¤As––‚É‰Ë‹ó‚Ìbyte‚ğ’u‚¢‚Ä‚ ‚é
+ 
+'BMPç”»åƒã®1è¡Œåˆ†ã®byteæ•°ã‚’è¨ˆç®—
+'BMPç”»åƒã¯1è¡Œã®byteæ•°ãŒ4ã®å€æ•°ã«ãªã‚‹ã‚ˆã†ã€è¡Œæœ«ã«æ¶ç©ºã®byteã‚’ç½®ã„ã¦ã‚ã‚‹
 Function myCalcLineSize(Width_Pixel As Long) As Long
     Dim Width_Byte As Long
     Width_Byte = Width_Pixel * 3
-    
+     
     If Width_Byte Mod 4 <> 0 Then
         Width_Byte = Width_Byte + (4 - (Width_Byte Mod 4))
     End If
-    
+     
     myCalcLineSize = Width_Byte
 End Function
-
-'‰æ‘œ‚Ì”z—ñ‚ğƒZƒ‹‚É“h‚é
+ 
+'ç”»åƒã®é…åˆ—ã‚’ã‚»ãƒ«ã«å¡—ã‚‹
 Function WriteArray2Cells(a() As Byte, next_row As Long)
     Dim r As Long
     Dim c As Long
@@ -120,8 +116,8 @@ Function WriteArray2Cells(a() As Byte, next_row As Long)
         Next
     Next
 End Function
-
-'byte—ñ(a())‚ğ3ŸŒ³”z—ñ(image(x,y,color))‚É‚¢‚ê‚é
+ 
+'byteåˆ—(a())ã‚’3æ¬¡å…ƒé…åˆ—(image(x,y,color))ã«ã„ã‚Œã‚‹
 Function WriteImage2Array(image() As Byte, a() As Byte, fileSize As Long)
     Dim r As Long
     Dim c As Long
@@ -132,7 +128,7 @@ Function WriteImage2Array(image() As Byte, a() As Byte, fileSize As Long)
     rMax = UBound(image, 2)
     cMax = UBound(image, 1)
     i = fileSize - 1
-
+ 
     For r = 0 To rMax
         For c = cMax To 0 Step -1
             For color = 0 To 2
@@ -141,33 +137,17 @@ Function WriteImage2Array(image() As Byte, a() As Byte, fileSize As Long)
             Next
         Next
     Next
-        
+         
 End Function
-
-'”z—ñ‚Ì’·‚³•ª‚Ìs‚Æ—ñ‚Ì•‚ğ2pixel‚É‚·‚é
+ 
+'é…åˆ—ã®é•·ã•åˆ†ã®è¡Œã¨åˆ—ã®å¹…ã‚’2pixelã«ã™ã‚‹
 'height 1pix = 0.75, width 1pix = 0.118
 Function ChangeColumnWidth(image() As Byte, next_row As Long)
     Dim r As Long
     Dim c As Long
     r = UBound(image, 2) + 1
     c = UBound(image, 1) + 1
-
+ 
     Range(Columns(1), Columns(c)).ColumnWidth = 0.1
     Range(Rows(1), Rows(r + next_row)).RowHeight = 0.75
-End Function
-
-Function WriteImage2Jpeg(image() As Byte)
-    Dim r As Long
-    Dim c As Long
-    r = UBound(image, 2) + 1
-    c = UBound(image, 1) + 1
-    Dim rc As Long
-    
-    Range(Cells(1, 1), Cells(r, c)).CopyPicture
-        
-    rc = Shell("mspaint", vbNormalFocus)
-    Application.Wait Now + TimeValue("00:00:01")
-    SendKeys "^v", True
-    SendKeys "^s", True
-    
 End Function
